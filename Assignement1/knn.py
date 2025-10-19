@@ -26,7 +26,7 @@ if __name__ == "__main__":
     N_NEIGHBORS_VALUES = [1, 5, 25, 125, 500, 899]
     N_GENERATIONS = 5
     N_POINTS = 1200
-    split_index = 900
+    
 
     #We create output folder, if it exists --> SKIP 
     os.makedirs(output_folder, exist_ok=True)
@@ -38,11 +38,17 @@ if __name__ == "__main__":
     #Main Loop
     for i in range(N_GENERATIONS):
         print(f"\nRunning Generation {i+1}/{N_GENERATIONS}...")
-        full_data = make_dataset1(n_points=N_POINTS)
-        X_train = full_data[0][:split_index]
-        y_train = full_data[1][:split_index]
-        X_test = full_data[0][split_index:]
-        y_test = full_data[1][split_index:]
+        X , y  = make_dataset1(n_points=N_POINTS)
+
+        split_index = int(len(X) * 3 // 4) # we split 75% train, 25% test
+
+        X_train = X[:split_index]
+        y_train = y[:split_index]
+        X_test = X[split_index:]
+        y_test = y[split_index:]
+
+        print(f"Training set: {len(y_train)} samples")
+        print(f"Test set    : {len(y_test)} samples")
 
         for k in N_NEIGHBORS_VALUES:
             knn = KNeighborsClassifier(n_neighbors=k)
@@ -50,7 +56,7 @@ if __name__ == "__main__":
             score = knn.score(X_test, y_test)
             test_scores[k].append(score)
 
-            if i == 0:
+            if i == 4:  # Only plot for the last generation
                 plot_title = f"k-NN Decision Boundary (k={k})"
                 filename = f"knn_boundary_k={k}"
                 filepath = os.path.join(output_folder, filename)
