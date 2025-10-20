@@ -15,18 +15,18 @@ from data import make_dataset1
 from sklearn.neighbors import KNeighborsClassifier
 from plot import plot_boundary
 
-# Get the absolute path of the directory where this script is located
+# --- Setup Output Directory ---
 script_dir = os.path.dirname(os.path.abspath(__file__))
-# Join that path with the desired folder name
 output_folder = os.path.join(script_dir, "knn_plots")
 
 
 if __name__ == "__main__":
     # --- Parameters ---
+    FIXED_RANDOM_STATE = 42
     N_NEIGHBORS_VALUES = [1, 5, 25, 125, 500, 899]
     N_GENERATIONS = 5
     N_POINTS = 1200
-    
+    TRAIN_SPLIT_RATIO = 0.75
 
     #We create output folder, if it exists --> SKIP 
     os.makedirs(output_folder, exist_ok=True)
@@ -37,10 +37,10 @@ if __name__ == "__main__":
 
     #Main Loop
     for i in range(N_GENERATIONS):
-        print(f"\nRunning Generation {i+1}/{N_GENERATIONS}...")
-        X , y  = make_dataset1(n_points=N_POINTS)
+        print(f"\nRunning Generation {i+1}/{N_GENERATIONS}... with a fixed random state of {FIXED_RANDOM_STATE}" )
+        X , y  = make_dataset1(n_points=N_POINTS , random_state=FIXED_RANDOM_STATE)
 
-        split_index = int(len(X) * 3 // 4) # we split 75% train, 25% test
+        split_index = int(len(X) * TRAIN_SPLIT_RATIO) # we split 75% train, 25% test
 
         X_train = X[:split_index]
         y_train = y[:split_index]
