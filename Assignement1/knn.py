@@ -56,7 +56,7 @@ if __name__ == "__main__":
             score = knn.score(X_test, y_test)
             test_scores[k].append(score)
 
-            if i == 4:  # Only plot for the last generation
+            if i == N_GENERATIONS - 1:  # Only plot for the last generation
                 plot_title = f"k-NN Decision Boundary (k={k})"
                 filename = f"knn_boundary_k={k}"
                 filepath = os.path.join(output_folder, filename)

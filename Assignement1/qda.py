@@ -7,12 +7,8 @@ Project 1 - Classification algorithms
 Q3. Linear/Quadratic Discriminant Analysis (LDA/QDA).
 """
 import numpy as np
-<<<<<<< HEAD
 import os
-=======
-import os 
 
->>>>>>> ee08f5268b1b7e1cc6f13fdc938f2baf2f3f4fa9
 from sklearn.base import BaseEstimator, ClassifierMixin
 # --- Imports for the main experiment script ---
 from data import make_dataset1, make_dataset_breast_cancer
