@@ -58,7 +58,7 @@ def writeFileResults(filename, results, lines):
         results_str += lines[i] + " & "
         for j in range(n):
             if j == n - 1:
-                results_str += str(results[i][j]) + " \\\ \n\hline\n"
+                results_str += str(results[i][j]) + " \\\ \n"
             else:
                 results_str += str(results[i][j]) + " & "
     f.write(results_str)
@@ -74,7 +74,7 @@ def kFoldCrossValidation(attributes, classes, method, k=2):
         hp_values = [1, 2, 25, 125, 500, 899]
     hyperparam = 0
     max_score = 0
-    # test hyperparameter values until it stops increasing accuracy
+    # test all suggested hyperparameter values
     for p in hp_values:
         score = 0
         for i in range(k):
@@ -100,7 +100,7 @@ if __name__ == "__main__":
     LS_SIZE2 = 421
     NB_TESTS = 5
 
-    results = np.zeros((2, 4))
+    results = np.zeros((4, 2))
     
 
     # c'est moche mais j'en reste là pour aujourd'hui, c'est temporaire
@@ -115,8 +115,8 @@ if __name__ == "__main__":
     max_depth = kFoldCrossValidation(x_train, y_train, "dt", 6)
     k = kFoldCrossValidation(x, y, "knn", 6)
     # accuracies
-    results[0][0], results[1][0] = averageScore(SAMPLE_SIZE1, LS_SIZE1, NB_TESTS, "dt", max_depth, dataset=1)
-    results[0][1], results[1][1] = averageScore(SAMPLE_SIZE1, LS_SIZE1, NB_TESTS, "knn", k, dataset=1)
+    results[0][0], results[0][1] = averageScore(SAMPLE_SIZE1, LS_SIZE1, NB_TESTS, "dt", max_depth, dataset=1)
+    results[1][0], results[1][1] = averageScore(SAMPLE_SIZE1, LS_SIZE1, NB_TESTS, "knn", k, dataset=1)
 
     # Dataset2 :
     print("\n----------Dataset 2 :----------")
@@ -129,7 +129,7 @@ if __name__ == "__main__":
     max_depth = kFoldCrossValidation(x_train, y_train, "dt", 6)
     k = kFoldCrossValidation(x, y, "knn", 6)
     # accuracies
-    results[0][2], results[1][2] = averageScore(SAMPLE_SIZE2, LS_SIZE2, NB_TESTS, "dt", max_depth, dataset=2)
-    results[0][3], results[1][3] = averageScore(SAMPLE_SIZE2, LS_SIZE2, NB_TESTS, "knn", k, dataset=2)
+    results[2][0], results[2][1] = averageScore(SAMPLE_SIZE2, LS_SIZE2, NB_TESTS, "dt", max_depth, dataset=2)
+    results[3][0], results[3][1] = averageScore(SAMPLE_SIZE2, LS_SIZE2, NB_TESTS, "knn", k, dataset=2)
     print("\nresults :\n", results)
-    writeFileResults("mc_results.txt", results, ["Average accuracies", "Standard deviation"])
+    writeFileResults("mc_results.txt", results, ["\hline\n\multirow{2}{*}{Dataset 1} & dt", "\cline{2-4} & knn", "\hline\n\multirow{2}{*}{Dataset 2} & dt", "\cline{2-4} & knn"])
