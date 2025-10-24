@@ -186,7 +186,7 @@ if __name__ == "__main__":
             if i == N_GENERATIONS - 1:
                 filepath = os.path.join(output_folder, f"boundary_{model_name}")
                 plot_title = f"{model_name} Decision Boundary"
-                plot_boundary(filepath, model1, X1_train, y1_train, title=plot_title)
+                plot_boundary(filepath, model1, X1_test, y1_test, title=plot_title)
                 print(f"Saved plot to {filepath}.pdf")
 
     # Calculate and print the final average scores and std deviations
