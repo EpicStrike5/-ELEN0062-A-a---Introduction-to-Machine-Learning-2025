@@ -162,13 +162,13 @@ if __name__ == "__main__":
         print(f"\nRunning Generation {i+1}/{N_GENERATIONS}...")
         
         # Load and split Dataset 1 (Gaussian)
-        X1, y1 = make_dataset1(n_points=N_POINTS_DS1, random_state=FIXED_RANDOM_STATE)
+        X1, y1 = make_dataset1(n_points=N_POINTS_DS1, random_state=FIXED_RANDOM_STATE + i)
         split_idx1 = int(len(X1) * 0.75)
         X1_train, y1_train = X1[:split_idx1], y1[:split_idx1]
         X1_test, y1_test = X1[split_idx1:], y1[split_idx1:]
 
         # Load and split Dataset 2 (Breast Cancer)
-        X2, y2 = make_dataset_breast_cancer(random_state=FIXED_RANDOM_STATE)
+        X2, y2 = make_dataset_breast_cancer(random_state=FIXED_RANDOM_STATE + i)
         split_idx2 = int(len(X2) * 0.75)
         X2_train, y2_train = X2[:split_idx2], y2[:split_idx2]
         X2_test, y2_test = X2[split_idx2:], y2[split_idx2:]
