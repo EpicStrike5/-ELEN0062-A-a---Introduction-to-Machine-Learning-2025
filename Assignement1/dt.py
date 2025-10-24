@@ -9,109 +9,65 @@ Q1. Decision Trees.
 
 import numpy as np
 from matplotlib import pyplot as plt
-import os
 
 from data import make_dataset1
 from sklearn.tree import DecisionTreeClassifier
 from plot import plot_boundary
 
-# --- Setup Output Directory ---
-script_dir = os.path.dirname(os.path.abspath(__file__))
-output_folder = os.path.join(script_dir, "dt_plots")
 
-def run_dt_analysis(n_points, n_generations, train_split_ratio, depth_values_vector, fixed_random_state):
+# Put your functions here
+def testDecisionTree(ls, ts, plot_name, max_depth=None, plot=False):
+    dt = DecisionTreeClassifier(max_depth=max_depth, random_state=1)
+    result = dt.fit(ls[0], ls[1])
+    if plot is True:
+        plot_boundary(plot_name, dt, ls[0], ls[1])
+    score = dt.score(ts[0], ts[1])
+    # print("Score ", plot_name, score)
+    # if max_depth is None:
+    #     print("Depth ", plot_name, " = ", dt.get_depth())
+    return score
+
+def initData(sample_size, ls_size, random_state=None):
+    data = make_dataset1(sample_size, random_state=random_state)
     
-    print("\n" + "="*80)
-    print("STARTING Q1: DECISION TREE MULTI-GENERATION ANALYSIS")
-    print("="*80)
+    ls_points = np.array(data[0][:ls_size][:])
+    ls_classes = np.array(data[1][:ls_size][:])
+    ts_points = np.array(data[0][ls_size:][:])
+    ts_classes = np.array(data[1][ls_size:][:])
+    ls = [ls_points, ls_classes]
+    ts = [ts_points, ts_classes]
+    return ls, ts
 
-    X, y = make_dataset1(n_points=n_points, random_state=fixed_random_state)
-
-    split_index = int(len(X) * train_split_ratio) 
-
-    X_train = X[:split_index]
-    y_train = y[:split_index]
-    X_test = X[split_index:]
-    y_test = y[split_index:]
-
-    print(f"Training set: {len(y_train)} samples")
-    print(f"Test set    : {len(y_test)} samples")
-
-    
-    for depth in depth_values_vector:
-        depth_str = "unlimited" if depth is None else str(depth)
-
-        filename = f"MC_dt_boundary_depth={depth_str}"
-        filepath = os.path.join(output_folder, filename)
-
-        run_decision_tree_experiment(X_train, y_train, X_test, y_test,
-                                     max_depth=depth,
-                                     output_filepath=filepath,
-                                     depth_label=depth_str)
-    return filename, filepath
-    
-
-
-#bblablabalbalbal
-
-def run_decision_tree_experiment(X_train, y_train, X_test, y_test, max_depth, output_filepath, depth_label):
-    
-    # --- Model training ---
-    dt = DecisionTreeClassifier(max_depth=max_depth, random_state=FIXED_RANDOM_STATE)
-    dt.fit(X_train, y_train)
-
-    # --- Title utilizing depth_label ---
-    plot_title = f"Decision Tree Boundary (max_depth={depth_label})"
-    
-    # --- Saving the files ---  
-    plot_boundary(output_filepath, dt, X_train, y_train, title=plot_title)
-    print(f"Saved plot to {output_filepath}.pdf")
-
-    # --- Evaluation ---
-    train_score = dt.score(X_train, y_train)
-    test_score = dt.score(X_test, y_test)
-    actual_depth = dt.get_depth()
-
-    # --- Print results ---
-    print(f"Train Accuracy : {train_score:.4f}")
-    print(f"Test Accuracy  : {test_score:.4f}")
-    if max_depth is None:
-        print(f"Actual Depth   : {actual_depth}")
+def averageScore(sample_size, ls_size, score, nb_tests, depth=None, random_state=1):
+    scores = np.zeros(nb_tests)
+    scores[0] = score
+    for i in range(nb_tests - 1):
+        ls2, ts2 = initData(sample_size, ls_size, random_state=i + random_state)
+        name = 'new dataset' + str(i + 1)
+        scores[i + 1] = testDecisionTree(ls2, ts2, name, max_depth=depth)
+    score_avg = np.mean(scores)
+    score_sd = np.std(scores)
+    return score_avg, score_sd
 
 
 if __name__ == "__main__":
-    N_POINTS = 1200
-    DEPTH_VALUES = [1, 2, 4, 6, None]
+    pass  # Make your experiments here
+    SAMPLE_SIZE = 1200
+    LS_SIZE = 900
+    NB_TESTS = 5
     FIXED_RANDOM_STATE = 42
-    TRAIN_SPLIT_RATIO = 0.75
 
-    #We create output folder, if it exists --> SKIP 
-    os.makedirs(output_folder, exist_ok=True)
-
-    print(f"Generating a fixed dataset with {N_POINTS} points (random_state={FIXED_RANDOM_STATE})...")
-    X, y = make_dataset1(n_points=N_POINTS, random_state=FIXED_RANDOM_STATE)
-
-    split_index = int(len(X) * TRAIN_SPLIT_RATIO) # we split 75% train, 25% test
-
-    X_train = X[:split_index]
-    y_train = y[:split_index]
-    X_test = X[split_index:]
-    y_test = y[split_index:]
-    
-    print(f"Training set: {len(y_train)} samples")
-    print(f"Test set    : {len(y_test)} samples")
-
-    print("\n--- Starting Decision Tree Experiments ---")
-    for depth in DEPTH_VALUES:
-        depth_str = "unlimited" if depth is None else str(depth)
-        print(f"\nRunning experiment for depth = {depth_str}...")
-
-        filename = f"dt_boundary_depth={depth_str}"
-        filepath = os.path.join(output_folder, filename)
-
-        run_decision_tree_experiment(X_train, y_train, X_test, y_test,
-                                     max_depth=depth,
-                                     output_filepath=filepath,
-                                     depth_label=depth_str)
-
-    print("\n--- All experiments complete ---")
+    depths = [1, 2, 4, 6]
+    ls, ts = initData(SAMPLE_SIZE, LS_SIZE, random_state=FIXED_RANDOM_STATE)
+    for i in range(5):  
+        if i in range(len(depths)): 
+            depth = depths[i]
+            name = 'dt_' + str(depth)
+            score = testDecisionTree(ls, ts, name, max_depth=depth, plot=True)
+            score_avg, score_sd = averageScore(SAMPLE_SIZE, LS_SIZE, score, NB_TESTS, depth)
+            print("Average score ", name, score_avg, "\nStandard deviation ", name, score_sd, "\n")
+        else:
+            name = 'dt_none' 
+            score = testDecisionTree(ls, ts, name, plot=True)
+            score_avg, score_sd = averageScore(SAMPLE_SIZE, LS_SIZE, score, NB_TESTS)
+            print("Average score ", name, score_avg, "\nStandard deviation ", name, score_sd)
