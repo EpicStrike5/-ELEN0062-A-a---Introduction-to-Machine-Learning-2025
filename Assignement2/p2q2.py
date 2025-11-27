@@ -8,7 +8,6 @@ import os
 NB_LS = 100 # use 100 or 500
 NB_FEATURES = 1 # use 5 but only 1 is useful for 2.2
 NB_SAMPLES = 80 # for tests only, statement says to use 80
-X_train = np.random.uniform(-10, 10, NB_LS) #keep the same random values for all training computations
 
 def createLS(nbfeatures, nbsamples, sample_features=None,nb_LS=NB_LS):
     # sample_features: matrix of dimension (nbsamples, nbfeatures), LSx
@@ -48,7 +47,10 @@ def variance(x0,x_train,Lset, nbfeatures, nbsamples, nb_ls, method):
     var = np.mean((fLS - f_mean)**2)
     return var
 
-def res_error(x0,x_train,Lset, nbfeatures, nbsamples, nb_ls, method):
+def res_error():
+    return 1
+
+def exp_error(x0,x_train,Lset, nbfeatures, nbsamples, nb_ls, method):
     error = 1 + squared_bias(x0,x_train,Lset, nbfeatures, nbsamples, nb_ls, method) + variance(x0,x_train,Lset, nbfeatures, nbsamples, nb_ls, method)
     return error
 #note to self: on a besoin que de fLS, 
@@ -67,13 +69,34 @@ def estimator(x, LS, method="ridge"):
         func = tree.DecisionTreeRegressor(max_depth=5)
         func.fit(LS[:,0].reshape(-1, 1),LS[:,1])
         return func.predict([[x]])
-
-if __name__ == "__main__":
+def plot_error(nbfeatures, nbsamples, nb_LS, method, x_values):
     script_dir = os.path.dirname(os.path.abspath(__file__))
     output_folder = os.path.join(script_dir, "error_plots")
     os.makedirs(output_folder, exist_ok=True)
+    LearningSet = createLS(nbfeatures, nbsamples, nb_LS)
+    x1_values = np.linspace(-10, 10, 100)
+    bias = []
+    var = []
+    exp_err = []
+    for x1 in x1_values:
+        bias.append(squared_bias(x1,x_values,LearningSet, nbfeatures, nbsamples, nb_LS, method))
+        var.append(variance(x1,x_values,LearningSet, nbfeatures, nbsamples, nb_LS, method))
+        exp_err.append(exp_error(x1,x_values,LearningSet, nbfeatures, nbsamples, nb_LS, method))
+    plt.plot(x1_values, bias, label='B^2')
+    plt.plot(x1_values, var, label='Var')
+    plt.plot(x1_values, exp_err, label='expected Error')
+    plt.plot(x1_values, [1]*len(x1_values), label='residual Error')
+    plt.title(f'{method} Regression Bias-Variance ')
+    plt.xlabel('x1')
+    plt.ylabel('Error')
+    plt.legend()
+    plt.savefig(os.path.join(output_folder, f"{method}_bias_variance.pdf"))
 
-    LearningSet = createLS(NB_FEATURES, NB_SAMPLES, nb_LS=NB_LS)
+def plot_error_all_methods(nbfeatures, nbsamples, nb_LS, x_values):
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    output_folder = os.path.join(script_dir, "error_plots")
+    os.makedirs(output_folder, exist_ok=True)
+    LearningSet = createLS(nbfeatures, nbsamples, nb_LS)
     x1_values = np.linspace(-10, 10, 100)
     bias_ridge = []
     var_ridge = []
@@ -86,24 +109,24 @@ if __name__ == "__main__":
     exp_err_dt = []
 
     for x1 in x1_values:
-        bias_ridge.append(squared_bias(x1,X_train,LearningSet, NB_FEATURES, NB_SAMPLES, NB_LS, "ridge"))
-        var_ridge.append(variance(x1,X_train,LearningSet, NB_FEATURES, NB_SAMPLES,NB_LS, "ridge"))
-        exp_err_ridge.append(res_error(x1,X_train,LearningSet, NB_FEATURES, NB_SAMPLES,NB_LS, "ridge"))
+        bias_ridge.append(squared_bias(x1,x_values,LearningSet, nbfeatures, nbsamples, nb_LS, "ridge"))
+        var_ridge.append(variance(x1,x_values,LearningSet, nbfeatures, nbsamples,nb_LS, "ridge"))
+        exp_err_ridge.append(exp_error(x1,x_values,LearningSet, nbfeatures, nbsamples,nb_LS, "ridge"))
         
-        bias_knn.append(squared_bias(x1,X_train,LearningSet, NB_FEATURES, NB_SAMPLES,NB_LS, "kNN"))
-        var_knn.append(variance(x1, X_train, LearningSet, NB_FEATURES, NB_SAMPLES, NB_LS, "kNN"))    
-        exp_err_knn.append(res_error(x1,X_train,LearningSet, NB_FEATURES, NB_SAMPLES,NB_LS,"kNN"))
+        bias_knn.append(squared_bias(x1,x_values,LearningSet, nbfeatures, nbsamples,nb_LS, "kNN"))
+        var_knn.append(variance(x1, x_values, LearningSet, nbfeatures, nbsamples, nb_LS, "kNN"))    
+        exp_err_knn.append(exp_error(x1,x_values,LearningSet, nbfeatures, nbsamples,nb_LS,"kNN"))
         
-        bias_dt.append(squared_bias(x1,X_train,LearningSet, NB_FEATURES, NB_SAMPLES,NB_LS,"dt"))
-        var_dt.append(variance(x1,X_train,LearningSet, NB_FEATURES, NB_SAMPLES,NB_LS, "dt"))
-        exp_err_dt.append(res_error(x1,X_train,LearningSet, NB_FEATURES, NB_SAMPLES,NB_LS, "dt"))
+        bias_dt.append(squared_bias(x1,x_values,LearningSet, nbfeatures, nbsamples,nb_LS,"dt"))
+        var_dt.append(variance(x1,x_values,LearningSet, nbfeatures, nbsamples,nb_LS, "dt"))
+        exp_err_dt.append(exp_error(x1,x_values,LearningSet, nbfeatures, nbsamples,nb_LS, "dt"))
     
-    # plot of the errors in the three methods
     plt.figure(figsize=(18, 12))
     plt.subplot(3, 1, 1)
     plt.plot(x1_values, bias_ridge, label='Ridge B2')
     plt.plot(x1_values, var_ridge, label='Ridge Var')
-    plt.plot(x1_values, exp_err_ridge, label='Ridge residual Error')
+    plt.plot(x1_values, exp_err_ridge, label='Ridge expected Error')
+    plt.plot(x1_values, [1]*len(x1_values), label='residual Error')
     plt.title('Ridge Regression Bias-variance')
     plt.xlabel('x1')
     plt.ylabel('Error') 
@@ -111,7 +134,8 @@ if __name__ == "__main__":
     plt.subplot(3, 1, 2)
     plt.plot(x1_values, bias_knn, label='kNN B^2')
     plt.plot(x1_values, var_knn, label='kNN var')
-    plt.plot(x1_values, exp_err_knn, label='kNN residual Error')
+    plt.plot(x1_values, exp_err_knn, label='kNN expected Error')
+    plt.plot(x1_values, [1]*len(x1_values), label='residual Error')
     plt.title('kNN Regression Bias-Variance ')
     plt.xlabel('x1')
     plt.ylabel('Error')
@@ -119,13 +143,21 @@ if __name__ == "__main__":
     plt.subplot(3, 1, 3)
     plt.plot(x1_values, bias_dt, label='DT B^2')
     plt.plot(x1_values, var_dt, label='DT var')
-    plt.plot(x1_values, exp_err_dt, label='DT residual Error')
+    plt.plot(x1_values, exp_err_dt, label='DT expected Error')
+    plt.plot(x1_values, [1]*len(x1_values), label='residual Error')
     plt.title('Decision Tree Regression Bias-Variance ')
     plt.xlabel('x1')
     plt.ylabel('Error')
     plt.legend()
     plt.tight_layout()
     plt.savefig(os.path.join(output_folder, "bias_variance.pdf"))
-    
 
-        
+
+
+
+if __name__ == "__main__":
+    X_train = np.random.uniform(-10, 10, NB_LS) #keep the same random values for all training computations
+    plot_error(NB_FEATURES, NB_SAMPLES, NB_LS, "ridge", X_train)
+    plot_error(NB_FEATURES, NB_SAMPLES, NB_LS, "kNN", X_train)
+    plot_error(NB_FEATURES, NB_SAMPLES, NB_LS, "dt", X_train)
+    plot_error_all_methods(NB_FEATURES, NB_SAMPLES, NB_LS, X_train)
