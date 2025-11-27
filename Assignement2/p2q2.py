@@ -38,13 +38,13 @@ def squared_bias(x0,x_train,Lset, nbfeatures, nbsamples, nb_ls, method):
     return bias2
 
 def variance(x0,x_train,Lset, nbfeatures, nbsamples, nb_ls, method):
-    fLS =[]
+    Yr =[]
     for i in range(nb_ls):
         ls = Lset[i]
         yr = estimator(x_train[i], ls,method)
-        fLS.append(yr)
-    f_mean = np.mean(fLS)
-    var = np.mean((fLS - f_mean)**2)
+        Yr.append(yr)
+    arg = Yr - np.mean(Yr)
+    var = np.mean(arg**2)
     return var
 
 def res_error():
@@ -69,11 +69,13 @@ def estimator(x, LS, method="ridge"):
         func = tree.DecisionTreeRegressor(max_depth=5)
         func.fit(LS[:,0].reshape(-1, 1),LS[:,1])
         return func.predict([[x]])
+    
+
 def plot_error(nbfeatures, nbsamples, nb_LS, method, x_values):
     script_dir = os.path.dirname(os.path.abspath(__file__))
     output_folder = os.path.join(script_dir, "error_plots")
     os.makedirs(output_folder, exist_ok=True)
-    LearningSet = createLS(nbfeatures, nbsamples, nb_LS)
+    LearningSet = createLS(nbfeatures, nbsamples,nb_LS=nb_LS)
     x1_values = np.linspace(-10, 10, 100)
     bias = []
     var = []
@@ -91,12 +93,14 @@ def plot_error(nbfeatures, nbsamples, nb_LS, method, x_values):
     plt.ylabel('Error')
     plt.legend()
     plt.savefig(os.path.join(output_folder, f"{method}_bias_variance.pdf"))
+    plt.clf()
+    plt.close()
 
 def plot_error_all_methods(nbfeatures, nbsamples, nb_LS, x_values):
     script_dir = os.path.dirname(os.path.abspath(__file__))
     output_folder = os.path.join(script_dir, "error_plots")
     os.makedirs(output_folder, exist_ok=True)
-    LearningSet = createLS(nbfeatures, nbsamples, nb_LS)
+    LearningSet = createLS(nbfeatures, nbsamples, nb_LS=nb_LS)
     x1_values = np.linspace(-10, 10, 100)
     bias_ridge = []
     var_ridge = []
@@ -151,13 +155,46 @@ def plot_error_all_methods(nbfeatures, nbsamples, nb_LS, x_values):
     plt.legend()
     plt.tight_layout()
     plt.savefig(os.path.join(output_folder, "bias_variance.pdf"))
+    plt.clf()
+    plt.close()
+
+def plot_average_models(x_values, nbfeatures, nbsamples, nb_LS, method):
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    output_folder = os.path.join(script_dir, "method_plots")
+    os.makedirs(output_folder, exist_ok=True)
+    learningSet = createLS(nbfeatures, nbsamples,nb_LS=nb_LS)
+    x = np.linspace(-10, 10, 100)
+    y_ridge = []
+    y_dt = []
+    y_knn = []
+    for i in x:
+        for j in range(nb_LS):
+            ls = learningSet[j]
+            fLS_ridge = estimator(i, ls, "ridge")
+            fLS_dt = estimator(i, ls, "dt")
+            fLS_knn = estimator(i, ls, "kNN")
+        y_ridge.append(np.mean(fLS_ridge))
+        y_dt.append(np.mean(fLS_dt))
+        y_knn.append(np.mean(fLS_knn))
 
 
-
+    plt.plot(x, y_ridge, label=' ridge estimator')
+    plt.plot(x, y_dt, label=' decision tree estimator')
+    plt.plot(x, y_knn, label=' kNN estimator')
+    plt.scatter(learningSet[0][:,0], learningSet[0][:,1],s=1,color='red', label='Learning Set Points')
+    plt.title(f'{method} Regression Estimator')
+    plt.xlabel('x1')
+    plt.ylabel('Estimated y')
+    plt.legend()
+    plt.savefig(os.path.join(output_folder, "methods_estimator.pdf"))
+    plt.clf()
+    plt.close()
+    pass
 
 if __name__ == "__main__":
     X_train = np.random.uniform(-10, 10, NB_LS) #keep the same random values for all training computations
-    plot_error(NB_FEATURES, NB_SAMPLES, NB_LS, "ridge", X_train)
-    plot_error(NB_FEATURES, NB_SAMPLES, NB_LS, "kNN", X_train)
-    plot_error(NB_FEATURES, NB_SAMPLES, NB_LS, "dt", X_train)
-    plot_error_all_methods(NB_FEATURES, NB_SAMPLES, NB_LS, X_train)
+    plot_average_models(X_train, NB_FEATURES, NB_SAMPLES, NB_LS, "ridge")
+    #plot_error(NB_FEATURES, NB_SAMPLES, NB_LS, "ridge", X_train)
+    #plot_error(NB_FEATURES, NB_SAMPLES, NB_LS, "kNN", X_train)
+    #plot_error(NB_FEATURES, NB_SAMPLES, NB_LS, "dt", X_train)
+    #plot_error_all_methods(NB_FEATURES, NB_SAMPLES, NB_LS, X_train)
