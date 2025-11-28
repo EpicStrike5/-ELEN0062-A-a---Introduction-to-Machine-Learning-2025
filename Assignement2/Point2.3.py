@@ -1,3 +1,14 @@
+"""Point 2.3: Mean bias–variance analysis over N, complexity, and irrelevant features.
+
+This script uses the protocol from (2.1)/(2.2) to estimate mean (over p(x))
+values of the residual error, squared bias, variance and expected error (MSE)
+for ridge regression, kNN and regression trees as functions of:
+- the learning set size N,
+- the model complexity,
+- the number of irrelevant features.
+
+"""
+
 import numpy as np
 from sklearn.linear_model import Ridge
 from sklearn.neighbors import KNeighborsRegressor
@@ -154,29 +165,59 @@ def calculate_mean_values(results):
 # --- PLOTTING FUNCTIONS FOR 2.3 ---
 
 def plot_mean_results(results, param_range, param_label, filename, output_folder):
-    """
-    Generic plotter for N-impact and P-impact (where X-axis is linear/uniform).
+    """Generic plotter for N-impact and P-impact (linear X-axis).
+
+    ``results`` is a dict: method -> {'Bias', 'Var', 'MSE'} lists.
+    ``param_range`` is the list of N or P values used on the X-axis.
     """
     fig, axes = plt.subplots(3, 1, figsize=(10, 15), sharex=True)
-    fig.suptitle(f'Impact of {param_label} on Mean Error Components ($\text{{MSE}}$ Averaged)', fontsize=16)
+    fig.suptitle(
+        f"Impact of {param_label} on mean error components (MSE averaged)",
+        fontsize=16,
+    )
 
-    colors = ['blue', 'green', 'red']
+    colors = ["blue", "green", "red"]
 
     for i, name in enumerate(results.keys()):
         ax = axes[i]
-        
-        # Plot Bias^2 and Var
-        ax.plot(param_range, results[name]['Bias'], label=r'Mean Squared Bias ($\bar{\text{Bias}}^2$)', color=colors[0], linestyle='--')
-        ax.plot(param_range, results[name]['Var'], label=r'Mean Variance ($\bar{\text{Var}}$)', color=colors[1], linestyle='--')
-        
-        # Plot Total Error
-        ax.plot(param_range, results[name]['MSE'], label=r'Mean Total Error ($\bar{\text{MSE}}$)', color=colors[2], linewidth=2)
-        
-        # Plot Residual Error (constant)
-        ax.hlines(SIGMA_SQUARED, param_range[0], param_range[-1], label=r'Residual Error ($\sigma^2=1$)', color='gray', linestyle=':')
-        
-        ax.set_title(f'{name} Regression')
-        ax.set_ylabel('Mean Error Value')
+
+        # Plot mean Bias^2 and Var
+        ax.plot(
+            param_range,
+            results[name]["Bias"],
+            label="Mean squared bias",
+            color=colors[0],
+            linestyle="--",
+        )
+        ax.plot(
+            param_range,
+            results[name]["Var"],
+            label="Mean variance",
+            color=colors[1],
+            linestyle="--",
+        )
+
+        # Plot mean total error (MSE)
+        ax.plot(
+            param_range,
+            results[name]["MSE"],
+            label="Mean total error (MSE)",
+            color=colors[2],
+            linewidth=2,
+        )
+
+        # Plot residual error (constant)
+        ax.hlines(
+            SIGMA_SQUARED,
+            param_range[0],
+            param_range[-1],
+            label="Residual error (sigma^2 = 1)",
+            color="gray",
+            linestyle=":",
+        )
+
+        ax.set_title(f"{name} regression")
+        ax.set_ylabel("Mean error value")
         ax.legend()
         ax.grid(True, alpha=0.5)
 
@@ -187,49 +228,129 @@ def plot_mean_results(results, param_range, param_label, filename, output_folder
     
 
 def plot_complexity_results(results, ridge_alphas, knn_ks, tree_depths, output_folder):
-    """
-    Specific plotter for Complexity analysis (where x-axis requires different scales/transforms).
+    """Plot impact of model complexity on mean error components.
+
+    ``results`` is a dict with keys 'Ridge', 'kNN', 'Tree', each mapping to a
+    dict with keys 'Param', 'Bias', 'Var', 'MSE'.
     """
     fig, axes = plt.subplots(3, 1, figsize=(10, 15))
-    fig.suptitle('Impact of Model Complexity on Mean Error Components ($\text{MSE}$ Averaged)', fontsize=16)
+    fig.suptitle(
+        "Impact of model complexity on mean error components (MSE averaged)",
+        fontsize=16,
+    )
 
     # --- Ridge Plot ---
     ax = axes[0]
-    ax.set_title(r'Ridge Regression ($\text{Complexity} \propto 1/\alpha$)')
-    ax.plot(results['Ridge']['Param'], results['Ridge']['Bias'], label=r'Mean $\text{Bias}^2$', color='blue', linestyle='--')
-    ax.plot(results['Ridge']['Param'], results['Ridge']['Var'], label=r'Mean $\text{Var}$', color='green', linestyle='--')
-    ax.plot(results['Ridge']['Param'], results['Ridge']['MSE'], label=r'Mean $\text{MSE}$', color='red', linewidth=2)
-    ax.hlines(SIGMA_SQUARED, ridge_alphas[0], ridge_alphas[-1], label=r'Residual Error ($\sigma^2=1$)', color='gray', linestyle=':')
-    ax.set_xscale('log') # Use log scale for alpha
-    ax.set_xlabel(r'Regularization Parameter $\alpha$ (Complexity $\downarrow$)')
-    ax.set_ylabel('Mean Error Value')
+    ax.set_title("Ridge regression (complexity decreases as alpha increases)")
+    ax.plot(
+        results["Ridge"]["Param"],
+        results["Ridge"]["Bias"],
+        label="Mean Bias^2",
+        color="blue",
+        linestyle="--",
+    )
+    ax.plot(
+        results["Ridge"]["Param"],
+        results["Ridge"]["Var"],
+        label="Mean Var",
+        color="green",
+        linestyle="--",
+    )
+    ax.plot(
+        results["Ridge"]["Param"],
+        results["Ridge"]["MSE"],
+        label="Mean MSE",
+        color="red",
+        linewidth=2,
+    )
+    ax.hlines(
+        SIGMA_SQUARED,
+        ridge_alphas[0],
+        ridge_alphas[-1],
+        label="Residual error (sigma^2 = 1)",
+        color="gray",
+        linestyle=":",
+    )
+    ax.set_xscale("log")  # Use log scale for alpha
+    ax.set_xlabel("Regularization parameter alpha (complexity decreases as alpha increases)")
+    ax.set_ylabel("Mean error value")
     ax.legend()
     ax.grid(True, alpha=0.5)
 
     # --- kNN Plot ---
     ax = axes[1]
-    ax.set_title(r'kNN Regression ($\text{Complexity} \propto 1/k$)')
-    ax.plot(results['kNN']['Param'], results['kNN']['Bias'], label=r'Mean $\text{Bias}^2$', color='blue', linestyle='--')
-    ax.plot(results['kNN']['Param'], results['kNN']['Var'], label=r'Mean $\text{Var}$', color='green', linestyle='--')
-    ax.plot(results['kNN']['Param'], results['kNN']['MSE'], label=r'Mean $\text{MSE}$', color='red', linewidth=2)
-    ax.hlines(SIGMA_SQUARED, knn_ks[0], knn_ks[-1], label=r'Residual Error ($\sigma^2=1$)', color='gray', linestyle=':')
-    ax.set_xlabel(r'Number of Neighbors $k$ (Complexity $\downarrow$)')
-    ax.set_ylabel('Mean Error Value')
+    ax.set_title("kNN regression (complexity decreases as k increases)")
+    ax.plot(
+        results["kNN"]["Param"],
+        results["kNN"]["Bias"],
+        label="Mean Bias^2",
+        color="blue",
+        linestyle="--",
+    )
+    ax.plot(
+        results["kNN"]["Param"],
+        results["kNN"]["Var"],
+        label="Mean Var",
+        color="green",
+        linestyle="--",
+    )
+    ax.plot(
+        results["kNN"]["Param"],
+        results["kNN"]["MSE"],
+        label="Mean MSE",
+        color="red",
+        linewidth=2,
+    )
+    ax.hlines(
+        SIGMA_SQUARED,
+        knn_ks[0],
+        knn_ks[-1],
+        label="Residual error (sigma^2 = 1)",
+        color="gray",
+        linestyle=":",
+    )
+    ax.set_xlabel("Number of neighbors k (complexity decreases as k increases)")
+    ax.set_ylabel("Mean error value")
     ax.legend()
     ax.grid(True, alpha=0.5)
 
     # --- Tree Plot ---
     ax = axes[2]
-    ax.set_title(r'Decision Tree Regression ($\text{Complexity} \propto \max\text{Depth}$)')
-    ax.plot(results['Tree']['Param'], results['Tree']['Bias'], label=r'Mean $\text{Bias}^2$', color='blue', linestyle='--')
-    ax.plot(results['Tree']['Param'], results['Tree']['Var'], label=r'Mean $\text{Var}$', color='green', linestyle='--')
-    ax.plot(results['Tree']['Param'], results['Tree']['MSE'], label=r'Mean $\text{MSE}$', color='red', linewidth=2)
-    ax.hlines(SIGMA_SQUARED, tree_depths[0], tree_depths[-1], label=r'Residual Error ($\sigma^2=1$)', color='gray', linestyle=':')
-    ax.set_xlabel(r'Max Depth (Complexity $\uparrow$)')
-    ax.set_ylabel('Mean Error Value')
+    ax.set_title("Decision tree regression (complexity increases with max depth)")
+    ax.plot(
+        results["Tree"]["Param"],
+        results["Tree"]["Bias"],
+        label="Mean Bias^2",
+        color="blue",
+        linestyle="--",
+    )
+    ax.plot(
+        results["Tree"]["Param"],
+        results["Tree"]["Var"],
+        label="Mean Var",
+        color="green",
+        linestyle="--",
+    )
+    ax.plot(
+        results["Tree"]["Param"],
+        results["Tree"]["MSE"],
+        label="Mean MSE",
+        color="red",
+        linewidth=2,
+    )
+    ax.hlines(
+        SIGMA_SQUARED,
+        tree_depths[0],
+        tree_depths[-1],
+        label="Residual error (sigma^2 = 1)",
+        color="gray",
+        linestyle=":",
+    )
+    ax.set_xlabel("Max depth (complexity increases with depth)")
+    ax.set_ylabel("Mean error value")
     ax.legend()
     ax.grid(True, alpha=0.5)
-    
+
     plt.tight_layout(rect=[0, 0, 1, 0.96])
     plt.savefig(os.path.join(output_folder, "2_complexity_plot.pdf"))
     plt.close(fig)
