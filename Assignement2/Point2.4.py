@@ -83,7 +83,7 @@ def generate_test_set(
 # --- BASE ESTIMATORS AND SINGLE-MODEL PREDICTION ---
 
 
-def get_estimator(method: str, alpha: float = 1.0, k: int = 5, max_depth: int = 5):
+def get_estimator(method: str, alpha: float = 10, k: int = 10, max_depth: int = 5):
     """Return a scikit-learn regressor for the given method name."""
 
     if method == "ridge":
@@ -275,8 +275,8 @@ def main_2_4() -> None:
 
     # Methods and their baseline hyperparameters.
     base_models = {
-        "Ridge": {"method": "ridge", "alpha": 1.0},
-        "kNN": {"method": "knn", "k": 5},
+        "Ridge": {"method": "ridge", "alpha": 10},
+        "kNN": {"method": "knn", "k": 10},
         "Tree": {"method": "dt", "max_depth": 5},
     }
 
