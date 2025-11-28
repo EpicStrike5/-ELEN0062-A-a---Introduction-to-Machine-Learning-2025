@@ -55,7 +55,7 @@ def create_learning_set(nb_features, nb_samples, nb_repetitions):
 
 # --- ESTIMATOR FUNCTION ---
 
-def get_estimator(method, alpha=1.0, k=5, max_depth=5):
+def get_estimator(method, alpha=10, k=10, max_depth=5):
     """Returns the scikit-learn estimator instance based on method and complexity."""
     if method == "ridge":
         return Ridge(alpha=alpha)
@@ -383,8 +383,8 @@ def main_2_3():
     
     # Define models to test (using baseline complexity)
     BASE_MODELS = {
-        'Ridge': {'method': 'ridge', 'alpha': 1.0},
-        'kNN': {'method': 'knn', 'k': 5}, 
+        'Ridge': {'method': 'ridge', 'alpha': 10.0},
+        'kNN': {'method': 'knn', 'k': 10}, 
         'Tree': {'method': 'dt', 'max_depth': 5}
     }
     

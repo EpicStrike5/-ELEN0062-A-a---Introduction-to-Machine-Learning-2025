@@ -335,9 +335,9 @@ def main_2_2() -> None:
 
     # 2. Define models with their complexity parameters.
     # Use plain text labels to avoid mathtext parsing issues in matplotlib titles.
-    models = {
+    BASE_MODELS = {
         "Ridge (alpha=10 - High Bias)": {"method": "ridge", "alpha": 10.0},
-        "kNN (k=5 - Moderate)": {"method": "knn", "k": 5},
+        "kNN (k=10 - Moderate)": {"method": "knn", "k": 10},
         "Tree (max_depth=5 - Moderate)": {"method": "dt", "max_depth": 5},
     }
 
@@ -351,7 +351,7 @@ def main_2_2() -> None:
     # 4. Run the pointwise analysis for all models.
     results: Dict[str, Dict[str, np.ndarray]] = {}
     print("--- Running Pointwise Bias–Variance Analysis ---")
-    for name, params in models.items():
+    for name, params in BASE_MODELS.items():
         print(f"Analyzing {name}...")
         results[name] = run_pointwise_analysis(X_test, learning_sets, **params)
 
