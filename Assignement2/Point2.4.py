@@ -274,7 +274,7 @@ def main_2_4() -> None:
     learning_sets = create_learning_set(NB_FEATURES, NB_SAMPLES, NB_REPETITIONS)
 
     # Methods and their baseline hyperparameters.
-    base_models = {
+    BASE_MODELS = {
         "Ridge": {"method": "ridge", "alpha": 10},
         "kNN": {"method": "knn", "k": 10},
         "Tree": {"method": "dt", "max_depth": 5},
@@ -284,11 +284,11 @@ def main_2_4() -> None:
     B_values = [1, 2, 5, 10, 20, 50]
 
     bagging_results: Dict[str, Dict[int, Dict[str, float]]] = {
-        name: {} for name in base_models.keys()
+        name: {} for name in BASE_MODELS.keys()
     }
 
     print("--- Running bagging experiments (2.4) ---")
-    for name, params in base_models.items():
+    for name, params in BASE_MODELS.items():
         print(f"Method: {name}")
         for B in B_values:
             print(f"  B = {B}")
