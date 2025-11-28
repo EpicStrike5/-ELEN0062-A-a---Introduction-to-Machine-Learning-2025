@@ -26,7 +26,7 @@ from sklearn.tree import DecisionTreeRegressor
 # --- CONSTANTS AND SETUP ---
 
 # R in the protocol (number of independent learning sets)
-NB_REPETITIONS: int = 200
+NB_REPETITIONS: int = 500
 # p in the problem statement (only x1 is relevant, others are irrelevant)
 NB_FEATURES: int = 5
 # N in the problem statement (learning sample size)
@@ -301,10 +301,15 @@ def plot_average_models(x_plot: np.ndarray, results: Dict[str, Dict[str, np.ndar
         color="black",
         linewidth=3,
     )
-
+    
     # Average model for each estimator.
     for name, data in results.items():
         ax2.plot(x_plot, data["avg_model"], label=f"Average Model ({name})", linewidth=2)
+
+    # Sample of the learning set (from the first 5 learning samples).
+    sample_LS = create_learning_set(NB_FEATURES, NB_SAMPLES, 5)
+    stacked_sample = (np.vstack([sample_LS[i][0] for i in range(5)]), np.hstack([sample_LS[i][1] for i in range(5)]))
+    ax2.scatter(stacked_sample[0][:, 0],stacked_sample[1],label="Learning set sample (5 sets)",color="violet",alpha=0.8,s=15,)
 
     ax2.set_xlabel("x1")
     ax2.set_ylabel("Prediction value")

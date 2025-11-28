@@ -374,6 +374,8 @@ def main_2_3():
     P_MAX = 10 
     X_test_fixed = np.zeros((NB_TEST_POINTS, P_MAX))
     X_test_fixed[:, 0] = x1_values
+    for i in range(1, P_MAX):
+        X_test_fixed[:, i] = np.random.uniform(-10, 10, NB_TEST_POINTS)
     
     # --- 2. Generate ONE large Learning Set (LS) ---
     # We use N_max and P_max to create one large pool of data to draw subsamples from.
