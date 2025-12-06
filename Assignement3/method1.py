@@ -71,7 +71,6 @@ def playerForward(pairs, side):
             forward[i] = sign(1, (-1) * side * (pairs["x_j"].loc[i] - pairs["x_sender"].loc[i]))
         else: # players are on different teams
             forward[i] = 0
-        print(i, n)
     return forward
 
 # if __name__ == '__main__':
