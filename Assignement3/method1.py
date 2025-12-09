@@ -2,7 +2,8 @@ import numpy as np
 import pandas as pd
 from math import copysign as sign
 from toy_example import load_from_csv, make_pair_of_players, compute_distance_, write_submission, measure_time
-from sklearn.tree import DecisionTreeClassifier
+from sklearn.tree import DecisionTreeClassifier 
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.utils import check_random_state
 
 def detectSides(LSx):
@@ -116,11 +117,11 @@ def assessment(input_file, output_file):
     for i in hyp:
         print(i)
         # Build the model
-        model = DecisionTreeClassifier(max_depth = i)
+        model = RandomForestClassifier(max_depth = i)
 
         with measure_time('Training'):
             print('Training...')
-            model.fit(X_LS_features, y_LS_pairs)
+            model.fit(X_LS_features, y_LS_pairs.values.ravel())
         
         # Predict
         scores[i - 5] = model.score(X_VS_features, y_VS_pairs)
@@ -148,18 +149,18 @@ def assessment(input_file, output_file):
     X_TS_features = X_TS_pairs[["distance", "same_team", "forward"]]
 
     # Build the model
-    model = DecisionTreeClassifier(max_depth=max_depth)
+    model = RandomForestClassifier(max_depth=max_depth)
 
     with measure_time('Training'):
         print('Training...')
-        model.fit(X_LSVS_features, y_LSVS_pairs)
+        model.fit(X_LSVS_features, y_LSVS_pairs.values.ravel())
     
     # Predict
-    score = model.score(X_TS_features, y_TS_pairs)
+    score = model.score(X_TS_features, y_TS_pairs.values.ravel())
     print(score)
     # Could retrain one last time on LS + VS + TS but the dataset is large 
     # so it is not absolutely necessary
-    return score
+    return score, model
 
 # if __name__ == '__main__':
 #     LSx = load_from_csv('input_train_set.csv')
@@ -171,26 +172,29 @@ if __name__ == '__main__':
 
     # ------------------------------- Learning ------------------------------- #
     # Load training data
-    X_LS = load_from_csv(prefix+'input_train_set.csv')
-    y_LS = load_from_csv(prefix+'output_train_set.csv')
+    # X_LS = load_from_csv(prefix+'input_train_set.csv')
+    # y_LS = load_from_csv(prefix+'output_train_set.csv')
 
-    s = detectSides(X_LS)
-    # Transform data as pair of players
-    # !! This step is only one way of addressing the problem.
-    # We strongly recommend to also consider other approaches that the one provided here.
+    # s = detectSides(X_LS)
+    # # Transform data as pair of players
+    # # !! This step is only one way of addressing the problem.
+    # # We strongly recommend to also consider other approaches that the one provided here.
 
-    X_LS_pairs, y_LS_pairs = make_pair_of_players(X_LS, y_LS)
-    X_LS_pairs["distance"] = compute_distance_(X_LS_pairs)
-    X_LS_pairs["forward"] = playerForward(X_LS_pairs, s)
+    # X_LS_pairs, y_LS_pairs = make_pair_of_players(X_LS, y_LS)
+    # X_LS_pairs["distance"] = compute_distance_(X_LS_pairs)
+    # X_LS_pairs["forward"] = playerForward(X_LS_pairs, s)
 
-    X_features = X_LS_pairs[["distance", "same_team", "forward"]]
+    # X_features = X_LS_pairs[["distance", "same_team", "forward"]]
 
-    # Build the model
-    model = DecisionTreeClassifier()
+    # # Build the model
+    # model = RandomForestClassifier()
 
-    with measure_time('Training'):
-        print('Training...')
-        model.fit(X_features, y_LS_pairs)
+    # with measure_time('Training'):
+    #     print('Training...')
+    #     model.fit(X_features, y_LS_pairs)
+
+    # Estimated score of the model
+    predicted_score, model = assessment('input_train_set.csv', 'output_train_set.csv')
 
     # ------------------------------ Prediction ------------------------------ #
     # Load test data
@@ -211,18 +215,15 @@ if __name__ == '__main__':
     # Deriving probas
     probas = y_pred.reshape(X_TS.shape[0], 22)
 
-    # Estimated score of the model
-    predicted_score = assessment('input_train_set.csv', 'output_train_set.csv')
-
     # Making the submission file
     fname = write_submission(probas=probas, estimated_score=predicted_score, file_name="method1_probas")
     print('Submission file "{}" successfully written'.format(fname))
 
-    # -------------------------- Random Prediction -------------------------- #
+    # # -------------------------- Random Prediction -------------------------- #
 
-    random_state = 0
-    random_state = check_random_state(random_state)
-    predictions = random_state.choice(np.arange(1,23), size=X_TS.shape[0], replace=True)
+    # random_state = 0
+    # random_state = check_random_state(random_state)
+    # predictions = random_state.choice(np.arange(1,23), size=X_TS.shape[0], replace=True)
 
-    fname = write_submission(predictions=predictions, estimated_score=predicted_score, file_name="method1_predictions")
-    print('Submission file "{}" successfully written'.format(fname))
+    # fname = write_submission(predictions=predictions, estimated_score=predicted_score, file_name="method1_predictions")
+    # print('Submission file "{}" successfully written'.format(fname))
